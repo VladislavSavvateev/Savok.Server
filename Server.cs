@@ -49,6 +49,8 @@ namespace Savok.Server {
 		public CustomMethodHandler CustomPostHandler { get; set; }
 
 		public string StorageFolder { get; set; } = "storage";
+		
+		public bool DisableFileCaching { get; set; }
 
 		public Server(params string[] prefixes) {
 			WebSocketContexts = new List<HttpListenerWebSocketContext>();
@@ -221,7 +223,7 @@ namespace Savok.Server {
 			}
 
 			var file = new FileInfo(path);
-			await Answer.FileAsync(context, file);
+			await Answer.FileAsync(context, file, DisableFileCaching);
 		}
 		
 		private static readonly WebSocketState[] StatesForRemoving =

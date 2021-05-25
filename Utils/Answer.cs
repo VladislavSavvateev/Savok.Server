@@ -14,16 +14,33 @@ namespace Savok.Server.Utils {
             sw.Write(json.ToString());
         }
 
-        public static async Task FileAsync(HttpListenerContext context, FileInfo file) {
+        public static async Task FileAsync(HttpListenerContext context, FileInfo file, bool withoutCaching) {
             if (file.Exists) {
                 if (!new FileExtensionContentTypeProvider().TryGetContentType(file.FullName, out var contentType))
                     contentType = "application/octet-stream";
+
+                if (withoutCaching) {
+                    context.Response.ContentType = contentType;
+                    await using var os = context.Response.OutputStream;
+                    await using var fs = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 				
-                context.Response.ContentType = contentType;
-                await using var os = context.Response.OutputStream;
-                await using var fs = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    await fs.CopyToAsync(os);
+                    return;
+                }
+                
+                var remoteETag = context.Request.Headers.Get("If-None-Match");
+
+                if (FileCacheManager.TryToGet(context, file, out var hash) && remoteETag != null && remoteETag == hash) {
+                    context.Response.StatusCode = 304;
+                } else {
+                    context.Response.AddHeader("ETag", hash);
 				
-                await fs.CopyToAsync(os);
+                    context.Response.ContentType = contentType;
+                    await using var os = context.Response.OutputStream;
+                    await using var fs = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+				
+                    await fs.CopyToAsync(os);
+                }
             } else context.Response.StatusCode = 404;
         }
     }
