@@ -65,13 +65,16 @@ namespace Savok.Server {
 		}
 
 		public void Start() {
+			foreach (var task in Tasks) task.Start();
+			
 			HttpListener.Start();
 			HttpListener.BeginGetContext(OnConnection, null);
 		}
 
 		public void Stop() {
-			HttpListener.Stop();
 			foreach (var task in Tasks) task.Stop();
+			
+			HttpListener.Stop();
 		}
 
 		private static Dictionary<string, Action> GetActions() {

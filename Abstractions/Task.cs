@@ -14,8 +14,8 @@ namespace Savok.Server.Abstractions {
         public void Start() {
             TaskToken = new CancellationTokenSource();
             System.Threading.Tasks.Task.Run(() => {
-                var s = new Stopwatch();
-                while (s.ElapsedMilliseconds < Delay && !TaskToken.IsCancellationRequested) 
+                var s = Stopwatch.StartNew();
+                while (s.Elapsed.TotalSeconds < Delay && !TaskToken.IsCancellationRequested) 
                     Thread.Sleep(100);
 
                 if (TaskToken.IsCancellationRequested) return;
@@ -30,8 +30,8 @@ namespace Savok.Server.Abstractions {
                             ex.Message);
                     }
 
-                    if (s.ElapsedMilliseconds < Frequency) 
-                        Thread.Sleep((int) (Frequency - s.ElapsedMilliseconds));
+                    if (s.Elapsed.TotalSeconds < Frequency) 
+                        Thread.Sleep((int) (Frequency - s.Elapsed.TotalSeconds) * 1000);
                 }
 
             }, TaskToken.Token);
