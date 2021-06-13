@@ -150,7 +150,7 @@ namespace Savok.Server {
 					? jsonableException
 					: ex is ArgumentException argumentException && argumentException.Message.Contains("JSON")
 						? new Ex01_WrongJson()
-						: new Ex05_Unexpected(ex));
+						: new Ex05_Unexpected(ex is TargetInvocationException tie ? tie.InnerException : ex));
 				try {
 					Answer.Json(context, answer);
 				} catch { /**/ }
