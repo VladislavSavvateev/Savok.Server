@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.WebSockets;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using HttpMultipartParser;
 using Microsoft.AspNetCore.StaticFiles;
@@ -51,6 +52,8 @@ namespace Savok.Server {
 		public string StorageFolder { get; set; } = "storage";
 		
 		public bool DisableFileCaching { get; set; }
+		
+		public List<(Regex, string)> Redirects { get; }
 
 		public Server(params string[] prefixes) {
 			WebSocketContexts = new List<HttpListenerWebSocketContext>();
@@ -62,6 +65,8 @@ namespace Savok.Server {
 
 			foreach (var prefix in prefixes) 
 				HttpListener.Prefixes.Add(prefix);
+
+			Redirects = new List<(Regex, string)>();
 		}
 
 		public void Start() {
@@ -196,6 +201,16 @@ namespace Savok.Server {
 		}
 
 		private async Task OnGET(HttpListenerContext context) {
+			var url = context.Request.Url?.AbsolutePath;
+			
+			if (string.IsNullOrEmpty(url)) return;
+			
+			var redirect = Redirects.FirstOrDefault(r => r.Item1.IsMatch(url));
+			if (redirect != default) {
+				context.Response.Redirect(redirect.Item1.Replace(url, redirect.Item2));
+				return;
+			}
+			
 			if (OnGetVerificationRequired?.GetInvocationList().Select(d => d.DynamicInvoke(context))
 				.Where(o => o != null).Select(o => (bool) o).Any(b => !b) ?? false) {
 				OnGetVerificationFailed?.Invoke(context);
@@ -208,9 +223,6 @@ namespace Savok.Server {
 			}
 			
 			var storage = Directory.CreateDirectory(StorageFolder);
-			var url = context.Request.Url?.AbsolutePath;
-			
-			if (string.IsNullOrEmpty(url)) return;
 
 			if (url.EndsWith("/")) url += "index.html";
 			
