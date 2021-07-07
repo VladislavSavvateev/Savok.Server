@@ -233,6 +233,8 @@ namespace Savok.Server {
 
 			var path = Path.Join(storage.FullName, url);
 			if (Directory.Exists(path)) {
+				context.Response.Redirect(url + '/');
+				return;
 				url += "/index.html";
 				path = Path.Join(storage.FullName, url);
 			}
