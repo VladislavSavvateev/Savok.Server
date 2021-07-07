@@ -233,7 +233,7 @@ namespace Savok.Server {
 
 			var path = Path.Join(storage.FullName, url);
 			if (Directory.Exists(path)) {
-				context.Response.Redirect(url + '/');
+				context.Response.Redirect(url + '/' + context.Request.Url.Query);
 				return;
 			}
 
