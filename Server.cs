@@ -157,7 +157,7 @@ namespace Savok.Server {
 						? new Ex01_WrongJson()
 						: new Ex05_Unexpected(ex is TargetInvocationException tie ? tie.InnerException : ex));
 				try {
-					Answer.Json(context, answer);
+					await Answer.Json(context, answer);
 				} catch { /**/ }
 			}
 		}
@@ -197,7 +197,7 @@ namespace Savok.Server {
 			if (action == null) throw new Ex04_ActionNotFound();
             
 			action.ValidateJson(this, context, json);
-			Answer.Json(context, action.DoWork(this, context, json));
+			await Answer.Json(context, await action.DoWork(this, context, json));
 		}
 
 		private async Task OnGET(HttpListenerContext context) {

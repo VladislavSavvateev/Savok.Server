@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.StaticFiles;
 
 namespace Savok.Server.Utils {
     public static class Answer {
-        public static void Json(HttpListenerContext context, JsonValue json) {
+        public static async Task Json(HttpListenerContext context, JsonValue json) {
             context.Response.ContentEncoding = Encoding.UTF8;
             context.Response.ContentType = "application/json";
-            using var sw = new StreamWriter(context.Response.OutputStream, Encoding.UTF8);
-            sw.Write(json.ToString());
+            await using var sw = new StreamWriter(context.Response.OutputStream, Encoding.UTF8);
+            await sw.WriteAsync(json.ToString());
         }
 
         public static async Task FileAsync(HttpListenerContext context, FileInfo file, bool withoutCaching) {

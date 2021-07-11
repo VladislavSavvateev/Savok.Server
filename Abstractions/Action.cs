@@ -1,5 +1,6 @@
 ﻿using System.Json;
 using System.Net;
+using System.Threading.Tasks;
 using Savok.Server.Utils;
 
 namespace Savok.Server.Abstractions {
@@ -14,6 +15,6 @@ namespace Savok.Server.Abstractions {
             Json.CheckFields(json, Fields);
             if (Types != null) Json.CheckTypes(json, Fields, Types);
         }
-        public abstract Json.JsonAnswer DoWork(Server server, HttpListenerContext context, JsonObject json);
+        public abstract Task<Json.JsonAnswer> DoWork(Server server, HttpListenerContext context, JsonObject json);
     }
 }
