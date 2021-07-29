@@ -54,6 +54,9 @@ namespace Savok.Server {
 		public bool DisableFileCaching { get; set; }
 		
 		public List<(Regex, string)> Redirects { get; }
+		
+		public string AccessControlAllowOrigin { get; set; }
+		public bool AccessControlAllowCredentials { get; set; }
 
 		public Server(params string[] prefixes) {
 			WebSocketContexts = new List<HttpListenerWebSocketContext>();
@@ -141,8 +144,19 @@ namespace Savok.Server {
 				} else {
 					switch (context.Request.HttpMethod) {
 						case "GET": await OnGET(context); break;
-						case "POST": await OnPOST(context); break;
-						case "OPTIONS": break;
+						case "POST":
+							if (!string.IsNullOrWhiteSpace(AccessControlAllowOrigin))
+								context.Response.AddHeader("Access-Control-Allow-Origin", AccessControlAllowOrigin);
+							context.Response.AddHeader("Access-Control-Allow-Credentials",
+								AccessControlAllowCredentials.ToString().ToLower());
+							await OnPOST(context); break;
+						
+						case "OPTIONS":
+							if (!string.IsNullOrWhiteSpace(AccessControlAllowOrigin))
+								context.Response.AddHeader("Access-Control-Allow-Origin", AccessControlAllowOrigin);
+							context.Response.AddHeader("Access-Control-Allow-Credentials",
+								AccessControlAllowCredentials.ToString().ToLower());
+							break;
 						default:
 							context.Response.StatusCode = 405;
 							break;
