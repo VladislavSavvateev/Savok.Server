@@ -57,6 +57,8 @@ namespace Savok.Server {
 		
 		public string AccessControlAllowOrigin { get; set; }
 		public bool AccessControlAllowCredentials { get; set; }
+		
+		public bool EnableWaterfallingIndex { get; set; }
 
 		public Server(params string[] prefixes) {
 			WebSocketContexts = new List<HttpListenerWebSocketContext>();
@@ -252,6 +254,11 @@ namespace Savok.Server {
 			}
 
 			var file = new FileInfo(path);
+
+			if (EnableWaterfallingIndex)
+				while (!file.Exists && file.Directory?.Parent != null && file.Directory?.FullName != storage.FullName)
+					file = new FileInfo(Path.Join(file.Directory.Parent.FullName, file.Name));
+
 			await Answer.FileAsync(context, file, DisableFileCaching);
 		}
 		
