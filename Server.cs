@@ -59,6 +59,7 @@ namespace Savok.Server {
 		public bool AccessControlAllowCredentials { get; set; }
 		
 		public bool EnableWaterfallingIndex { get; set; }
+		public bool FallbackToIndex { get; set; }
 
 		public Server(params string[] prefixes) {
 			WebSocketContexts = new List<HttpListenerWebSocketContext>();
@@ -258,6 +259,8 @@ namespace Savok.Server {
 			if (EnableWaterfallingIndex)
 				while (!file.Exists && file.Directory?.Parent != null && file.Directory?.FullName != storage.FullName)
 					file = new FileInfo(Path.Join(file.Directory.Parent.FullName, file.Name));
+
+			if (!file.Exists && FallbackToIndex) file = new FileInfo(Path.Join(storage.FullName, "index.html"));
 
 			await Answer.FileAsync(context, file, DisableFileCaching);
 		}
