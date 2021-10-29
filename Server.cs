@@ -11,7 +11,9 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using HttpMultipartParser;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Net.Http.Headers;
 using Savok.Server.Abstractions;
+using Savok.Server.Attributes;
 using Savok.Server.Exceptions;
 using Savok.Server.Utils;
 using Action = Savok.Server.Abstractions.Action;
@@ -212,7 +214,15 @@ namespace Savok.Server {
 			
 			Actions.TryGetValue(json["action"], out var action);
 			if (action == null) throw new Ex04_ActionNotFound();
-            
+
+			var customCorsOriginAttr = action.GetType().GetCustomAttributes()
+				.OfType<CustomCorsOriginAttribute>()
+				.FirstOrDefault();
+			if (customCorsOriginAttr is not null) {
+				context.Response.Headers.Remove(HeaderNames.AccessControlAllowOrigin);
+				context.Response.Headers.Add(HeaderNames.AccessControlAllowOrigin, customCorsOriginAttr.Origin);
+			}
+
 			action.ValidateJson(this, context, json);
 			await Answer.Json(context, await action.DoWork(this, context, json));
 		}
