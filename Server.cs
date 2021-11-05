@@ -170,11 +170,22 @@ namespace Savok.Server {
 					context.Response.Close();
 				}
 			} catch (Exception ex) {
-				var answer = new Json.JsonError(ex is JsonableException jsonableException
-					? jsonableException
-					: ex is ArgumentException argumentException && argumentException.Message.Contains("JSON")
-						? new Ex01_WrongJson()
-						: new Ex05_Unexpected(ex is TargetInvocationException tie ? tie.InnerException : ex));
+				JsonObject answer;
+				
+				switch (ex) {
+					case JsonableException jsonableException:
+						answer = new Json.JsonError(jsonableException);
+						break;
+					case ArgumentException argumentException when argumentException.Message.Contains("JSON"):
+						answer = new Json.JsonError(new Ex01_WrongJson());
+						break;
+					default:
+						OnUnexpectedException?.Invoke(ex);
+						answer = new Json.JsonError(
+							new Ex05_Unexpected(ex is TargetInvocationException tie ? tie.InnerException : ex));
+						break;
+				}
+				
 				try {
 					await Answer.Json(context, answer);
 				} catch { /**/ }
@@ -300,5 +311,8 @@ namespace Savok.Server {
 				OnWebSocketConnected?.Invoke(t.Result);
 			});
 		}
+
+		public delegate void OnUnexpectedExceptionHandler(Exception ex);
+		public event OnUnexpectedExceptionHandler OnUnexpectedException;
 	}
 }
