@@ -4,8 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
-using MySql.Data.MySqlClient;
-using Savok.Server.Abstractions;
 
 namespace Savok.Server.Utils {
 	public static class FileCacheManager {
