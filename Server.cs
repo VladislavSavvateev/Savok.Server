@@ -153,6 +153,9 @@ namespace Savok.Server {
 					switch (context.Request.HttpMethod) {
 						case "GET": await OnGET(context); break;
 						case "POST":
+							if (EnableIdempotence)
+								context.Response.AddHeader(HeaderNames.AccessControlAllowHeaders,
+									IdempotenceKeyHeaderName);
 							if (!string.IsNullOrWhiteSpace(AccessControlAllowOrigin))
 								context.Response.AddHeader("Access-Control-Allow-Origin", AccessControlAllowOrigin);
 							context.Response.AddHeader("Access-Control-Allow-Credentials",
@@ -160,6 +163,9 @@ namespace Savok.Server {
 							await OnPOST(context); break;
 						
 						case "OPTIONS":
+							if (EnableIdempotence)
+								context.Response.AddHeader(HeaderNames.AccessControlAllowHeaders,
+									IdempotenceKeyHeaderName);
 							if (!string.IsNullOrWhiteSpace(AccessControlAllowOrigin))
 								context.Response.AddHeader("Access-Control-Allow-Origin", AccessControlAllowOrigin);
 							context.Response.AddHeader("Access-Control-Allow-Credentials",
