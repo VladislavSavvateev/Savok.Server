@@ -63,6 +63,9 @@ namespace Savok.Server {
 		public bool EnableWaterfallingIndex { get; set; }
 		public bool FallbackToIndex { get; set; }
 
+		public bool EnableIdempotence { get; set; }
+		public string IdempotenceKeyHeaderName = "Idempotence-Key";
+
 		public Server(params string[] prefixes) {
 			WebSocketContexts = new List<HttpListenerWebSocketContext>();
 			
@@ -214,6 +217,9 @@ namespace Savok.Server {
 				multipartAction.ValidateRequest(this, context, multipart);
 				multipartAction.DoWork(this, context, multipart);
 			}
+
+			var idempotenceManager = EnableIdempotence ? IdempotenceManager.GetInstance() : null;
+			if (idempotenceManager is not null && await idempotenceManager.CheckIdempotenceAsync(this, context)) return;
 			
 			JsonObject json;
 			using (var sr = new StreamReader(context.Request.InputStream, context.Request.ContentEncoding)) 
@@ -234,8 +240,17 @@ namespace Savok.Server {
 				context.Response.Headers.Add(HeaderNames.AccessControlAllowOrigin, customCorsOriginAttr.Origin);
 			}
 
+			if (action.GetType().GetCustomAttributes().OfType<NeedIdempotenceAttribute>().Any() &&
+			    idempotenceManager?.GetIdempotenceValueFromHeaders(this, context) is null) 
+				throw new Ex06_NeedIdempotence();
+
 			action.ValidateJson(this, context, json);
-			await Answer.Json(context, await action.DoWork(this, context, json));
+
+			var answer = await action.DoWork(this, context, json);
+			
+			idempotenceManager?.StoreAnswer(this, context, answer);
+
+			await Answer.Json(context, answer);
 		}
 
 		private async Task OnGET(HttpListenerContext context) {
