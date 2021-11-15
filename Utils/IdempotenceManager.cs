@@ -41,24 +41,28 @@ namespace Savok.Server.Utils {
 		}
 
 		public IdemtopenceItem GetByGuid(Guid guid) {
-			IdemtopenceItems.RemoveAll(i => i.LastUntil < DateTimeOffset.Now);
-			
-			return IdemtopenceItems.FirstOrDefault(i => i.Guid == guid);
+			lock (IdemtopenceItems) {
+				IdemtopenceItems.RemoveAll(i => i.LastUntil < DateTimeOffset.Now);
+
+				return IdemtopenceItems.FirstOrDefault(i => i.Guid == guid);
+			}
 		}
 
 		public void Store(Guid guid, JsonValue answer) {
-			IdemtopenceItems.RemoveAll(i => i.LastUntil < DateTimeOffset.Now);
+			lock (IdemtopenceItems) {
+				IdemtopenceItems.RemoveAll(i => i.LastUntil < DateTimeOffset.Now);
 
-			var existingItem = GetByGuid(guid);
-			if (existingItem is not null) {
-				existingItem.Answer = answer;
-				existingItem.LastUntil = DateTimeOffset.Now;
-			} else {
-				IdemtopenceItems.Add(new IdemtopenceItem {
-					Guid = guid,
-					Answer = answer,
-					LastUntil = DateTimeOffset.Now.AddMinutes(5)
-				});
+				var existingItem = GetByGuid(guid);
+				if (existingItem is not null) {
+					existingItem.Answer = answer;
+					existingItem.LastUntil = DateTimeOffset.Now;
+				} else {
+					IdemtopenceItems.Add(new IdemtopenceItem {
+						Guid = guid,
+						Answer = answer,
+						LastUntil = DateTimeOffset.Now.AddMinutes(5)
+					});
+				}
 			}
 		}
 
