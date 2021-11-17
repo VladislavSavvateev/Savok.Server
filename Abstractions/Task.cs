@@ -26,8 +26,8 @@ namespace Savok.Server.Abstractions {
                     try {
                         if (!DoWork()) return;
                     } catch (Exception ex) {
-                        Log.E("TSK", "An error {0} occurred in {1}: {2}", ex.GetType().Name, GetType().Name,
-                            ex.Message);
+                        Log.E("TSK", "An error {0} occurred in {1}: {2}\n{3}", ex.GetType().Name, GetType().Name,
+                            ex.Message, ex.StackTrace);
                     }
 
                     if (s.Elapsed.TotalSeconds < Frequency) 
