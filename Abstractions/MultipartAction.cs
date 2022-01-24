@@ -16,6 +16,6 @@ namespace Savok.Server.Abstractions {
             var listOfFields = Fields.Where(field => !multipart.HasParameter(field)).ToList();
             if (listOfFields.Count > 0) throw new Ex02_FieldNotFound(listOfFields.ToArray());
         }
-        public abstract void DoWork(Server server, HttpListenerContext context, MultipartFormDataParser multipart);
+        public abstract System.Threading.Tasks.Task DoWork(Server server, HttpListenerContext context, MultipartFormDataParser multipart);
     }
 }
