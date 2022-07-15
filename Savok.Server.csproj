@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <Configurations>Debug;Release;Debug with laptop DB</Configurations>
         <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="HttpMultipartParser" Version="5.0.1" />
+      <PackageReference Include="HttpMultipartParser" Version="7.0.0" />
       <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
       <PackageReference Include="System.Json" Version="4.7.1" />
     </ItemGroup>
